@@ -1,0 +1,25 @@
+在看more_itertools模块中chunked源码时，发现是这样实现的
+def take(n, iterable):
+    """Return first *n* items of the iterable as a list.
+        >>> take(3, range(10))
+        [0, 1, 2]
+    """
+    return list(itertools.islice(iterable, n))
+
+def chunked(iterable, n):
+    """Break *iterable* into lists of length *n*:
+        >>> list(chunked([1, 2, 3, 4, 5, 6], 3))
+        [[1, 2, 3], [4, 5, 6]]
+        >>> list(chunked([1, 2, 3, 4, 5, 6, 7, 8], 3))
+        [[1, 2, 3], [4, 5, 6], [7, 8]]
+    """
+    return iter(functools.partial(take,n,iter(iterable)), [])  #iter(callable, sentinel)
+
+不太明白iter(functools.partial(take,n,iter(iterable)), [])为什么就可以实现
+进行了拆分分析
+（1）functools.partial(take,n,iter(iterable)）利用偏函数，固定了n和iter(iterable)两个参数
+（2）iter(callable, sentinel)中，持续调用参数callable直至其返回sentinel
+在take函数中加入print(next(iterable)），发现take函数被调用了很多次，因此问题出在第一个iter中
+我个人猜测：iter(callable, sentinel)会使iter(iterable)不断迭代，直至抛出错误，从而实现效果
+
+
