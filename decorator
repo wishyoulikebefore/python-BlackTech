@@ -1,0 +1,32 @@
+http重连
+
+def conn_try_again(function):  
+    RETRIES = 0  
+    #重试的次数  
+    count = {"num": RETRIES}  
+    def wrapped(*args, **kwargs):  
+        try:  
+            return function(*args, **kwargs)  
+        except Exception, err:  
+            if count['num'] < 2:  
+                count['num'] += 1  
+                return wrapped(*args, **kwargs)                    
+            else:  
+                raise Exception(err)  
+    return wrapped 
+    
+@conn_try_again  
+def post_query_bandwidth_for_bandwidth(self, contract_no, data_month, product_code):  
+    #根据webluker接口情况获取计费数据     
+    try:  
+        post_data = {'contract':contract_no, 'month': data_month, 'code':product_code}  
+        params = urllib.urlencode(post_data)  
+        response = urllib2.urlopen(WEBLUKER_BANDWITH_API + "?" +params)  
+        billdata = {}  
+        billdata = response.read()  
+        if not billdata:  
+            billdata = {}  
+        return billdata  
+    except Exception, err:  
+        err = u'与webluker接口间通信异常'  
+        raise Exception(err)
